@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+    
+    <TimePicker
+        android:id="@+id/timepicker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        />
+   
+    
+    <RelativeLayout
+        android:id="@+id/rllayout"
+        android:layout_width="match_parent"
+    	android:layout_height="50dp"
+    	android:orientation="horizontal"
+    	android:layout_alignParentBottom="true">
+    	<Button
+        	android:id="@+id/Ok"
+        	android:layout_width="100dp"
+        	android:layout_height="match_parent"
+        	android:layout_alignParentLeft="true"
+        	android:layout_marginLeft="30dp"
+        	android:text="@string/OK"
+        	/>
+    	<Button
+        	android:id="@+id/Cancel"
+        	android:layout_width="100dp"
+        	android:layout_height="match_parent"
+        	android:layout_alignParentRight="true"
+        	android:layout_marginRight="30dp"
+        	android:text="@string/Cancel"
+        	/>
+    </RelativeLayout>
+    
+    <RelativeLayout
+       android:id="@+id/playout"
+       android:layout_width="match_parent"
+       android:layout_height="40dp"
+       android:layout_above="@id/rllayout"
+       android:orientation="horizontal" >
+
+       <TextView
+           android:id="@+id/pintext"
+           android:layout_width="wrap_content"
+           android:layout_height="match_parent"
+           android:layout_alignParentLeft="true"
+           android:gravity="center"
+           android:text="Set a PIN: " />
+
+
+       <EditText 
+           android:id="@+id/setting_pinedit"
+           android:layout_width="match_parent"
+	       android:layout_height="match_parent"
+	       android:gravity="center"
+	       android:layout_alignParentRight="true"
+	       android:layout_toRightOf="@id/pintext"/>
+   </RelativeLayout>
+    
+    <Button
+        android:id="@+id/selectaPic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/playout"
+        android:text="Select a picture"/>
+    <ImageView 
+        android:id="@+id/selectaPicView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/timepicker"
+        android:layout_above="@id/selectaPic"/>
+    
+</RelativeLayout>
