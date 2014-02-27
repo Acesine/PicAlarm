@@ -1,28 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
     
-    <AnalogClock 
-        android:id="@+id/analogclock"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"/>
     <DigitalClock
         android:id="@+id/digitalclock"
-        android:layout_below="@id/analogclock"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="0dp"
         android:textSize="30sp"
-        android:gravity="center" />
+        android:gravity="center"
+        android:background="#cccccc"
+        android:layout_weight="2" />
 
-   <RelativeLayout
+   <LinearLayout
+        android:id="@+id/txtlayout"
+        android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:weightSum="2"
+	    android:orientation="horizontal">
+	    <TextView
+	        android:layout_width="0dp"
+	    	android:layout_height="match_parent"
+	    	android:layout_weight="1"
+	    	android:textStyle="bold"
+	    	android:text="@string/original_txt"
+	    	android:gravity="center"/>
+	    <TextView 
+	        android:layout_width="0dp"
+	        android:layout_height="match_parent"
+	        android:layout_weight="1"
+	        android:textStyle="bold"
+	        android:text="@string/new_txt"
+	        android:gravity="center"/>
+	</LinearLayout>
+	<LinearLayout
+        android:layout_width="match_parent"
+	    android:layout_height="0dp"
+	    android:layout_weight="3">
+	    <ImageView 
+	        android:id="@+id/originalPhoto"
+	        android:layout_width="0dp"
+	        android:layout_height="match_parent"
+	        android:layout_weight="1"
+	        android:contentDescription="@string/originaldescription"/>
+	    <ImageView
+    		android:id="@+id/photoTaken"
+    		android:layout_width="0dp"
+		    android:layout_height="match_parent"
+		    android:layout_weight="1"
+		    android:contentDescription="@string/newdescription" />
+	</LinearLayout>
+	
+	<TextView 
+        android:id="@+id/matchScore"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="15sp"
+        android:gravity="center"
+        android:text="@string/matchscore" 
+        android:textStyle="bold"/>
+	
+    <Button 
+        android:id="@+id/takepic_btn"
+        android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:text="@string/takeapic"
+	    android:textStyle="bold"
+	    android:textColor="#ffffff"
+        android:background="#003366"
+        android:layout_weight="2"
+        />
+    <TextView 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/or"
+        android:textStyle="bold"
+        android:gravity="center"/>
+    
+    <Button 
+        android:id="@+id/holdnshake"
+        android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:text="@string/holdnshake"
+	    android:textStyle="bold"
+	    android:textColor="#ffffff"
+        android:background="#003366"
+        android:layout_weight="0.5"
+        />
+    <RelativeLayout
        android:id="@+id/pinlayout"
        android:layout_width="match_parent"
-       android:layout_height="40dp"
-       android:layout_alignParentBottom="true"
-       android:orientation="horizontal" >
+       android:layout_height="0dp"
+       android:orientation="horizontal"
+       android:layout_weight="1" >
 
        <TextView
            android:id="@+id/pintext"
@@ -30,13 +101,17 @@
            android:layout_height="match_parent"
            android:layout_alignParentLeft="true"
            android:gravity="center"
-           android:text="PIN: " />
+           android:textStyle="bold"
+           android:text="@string/pswd" />
        
        <Button 
            android:id="@+id/checkpin"
            android:layout_width="wrap_content"
            android:layout_height="match_parent"
-           android:text="Check"
+           android:text="@string/check_txt"
+           android:textColor="#000000"
+           android:background="#cccccc"
+           android:textStyle="bold"
            android:layout_alignParentRight="true"/>
 
        <EditText 
@@ -45,56 +120,8 @@
 	       android:layout_height="match_parent"
 	       android:gravity="center"
 	       android:layout_toLeftOf="@id/checkpin"
-	       android:layout_toRightOf="@id/pintext"/>
+	       android:layout_toRightOf="@id/pintext"
+	       android:hint="@string/pswdhint"/>
    </RelativeLayout>
-    
-    <TextView 
-        android:id="@+id/matchScore"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="15sp"
-        android:gravity="center"
-        android:layout_above="@id/pinlayout"
-        android:text="Match Score: " />
-    <LinearLayout
-        android:id="@+id/txtlayout"
-        android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
-	    android:layout_below="@id/digitalclock">
-	    <TextView
-	        android:layout_width="0dp"
-	    	android:layout_height="wrap_content"
-	    	android:layout_weight="1"
-	    	android:text="Original:"/>
-	    <TextView 
-	        android:layout_width="0dp"
-	        android:layout_height="wrap_content"
-	        android:layout_weight="1"
-	        android:text="New:"/>
-	</LinearLayout>
-	
-    <Button 
-        android:id="@+id/takepic_btn"
-        android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
-	    android:layout_above="@id/matchScore"
-	    android:text="Take a Picture"
-        />
-    
-    <LinearLayout
-        android:layout_width="match_parent"
-	    android:layout_height="match_parent"
-	    android:layout_below="@id/txtlayout"
-	    android:layout_above="@id/takepic_btn">
-	    <ImageView 
-	        android:id="@+id/originalPhoto"
-	        android:layout_width="0dp"
-	        android:layout_height="match_parent"
-	        android:layout_weight="1"/>
-	    <ImageView 
-	        android:id="@+id/photoTaken"
-	        android:layout_width="0dp"
-	    	android:layout_height="match_parent"
-	    	android:layout_weight="1"/>
-	</LinearLayout>
-</RelativeLayout>
+   
+</LinearLayout>

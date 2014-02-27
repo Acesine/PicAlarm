@@ -2,22 +2,28 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.gao.myalarmclock"
     android:versionCode="1"
-    android:versionName="0.1Beta" >
+    android:versionName="0.1" >
 
     <uses-sdk
         android:minSdkVersion="8"
-        android:targetSdkVersion="10" />
+        android:targetSdkVersion="19" />
 
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    
+    <uses-permission android:name="android.permission.MANAGE_DOCUMENTS" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/clock"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
             android:name="com.gao.myalarmclock.MainActivity"
+            android:exported="true"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,22 +33,29 @@
         </activity>
         <activity
             android:name="com.gao.myalarmclock.ClockSettingActivity"
-            android:label="Setting">
+            android:label="Setting" >
         </activity>
         <activity
             android:name="com.gao.myalarmclock.AwakenActivity"
-            android:label="Wake Up!!">
-        </activity>    
-        <receiver 
-            android:name="com.gao.myalarmclock.MyBroadcastReceiver">
-            <intent-filter >
+            android:exported="true"
+            android:label="Wake Up!!" >
+        </activity>
+
+        <receiver android:name="com.gao.myalarmclock.MyBroadcastReceiver" >
+            <intent-filter>
                 <action android:name="com.gao.action.alarm" />
             </intent-filter>
         </receiver>
-        <service 
+
+        <service
             android:name="com.gao.myalarmclock.BackgroundMusicService"
-            android:enabled="true">
+            android:enabled="true" >
         </service>
+
+        <activity
+            android:name="com.gao.myalarmclock.ShakeActivity"
+            android:label="@string/title_activity_shake" >
+        </activity>
     </application>
 
 </manifest>

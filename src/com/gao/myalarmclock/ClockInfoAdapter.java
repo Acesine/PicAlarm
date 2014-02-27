@@ -1,19 +1,18 @@
 package com.gao.myalarmclock;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.io.IOException;
 import java.util.List;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
+import android.graphics.Typeface;
+import android.provider.MediaStore;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -47,24 +46,30 @@ public class ClockInfoAdapter extends ArrayAdapter<ClockInfo>{
 		}
 		
 		TextView timeView = (TextView)clockinfoView.findViewById(R.id.clockinfo);
-		TextView dateView = (TextView)clockinfoView.findViewById(R.id.rowdate);
+		//TextView dateView = (TextView)clockinfoView.findViewById(R.id.rowdate);
 		
 		timeView.setText(time);
+		timeView.setTextColor(0xFF003366);
+		timeView.setTextSize(20);
+		timeView.setTypeface(Typeface.DEFAULT_BOLD);
+		timeView.setGravity(Gravity.CENTER);
 		
-		if(item.bitmapUri != null)
+		if(item.getImageUriString() != null)
 		{
+			ImageView imview = (ImageView)clockinfoView.findViewById(R.id.item_imageview);
+			Bitmap bm;
 			try {
-				InputStream stream = null;
-				stream = clockinfoView.getContext().getContentResolver().openInputStream(Uri.parse(item.bitmapUri));
-				Bitmap bitmap = BitmapFactory.decodeStream(stream);
-				ImageView imview = (ImageView)clockinfoView.findViewById(R.id.item_imageview);
-				imview.setImageBitmap(bitmap);
-			} catch (FileNotFoundException e) {
+				bm = MediaStore.Images.Media.getBitmap(clockinfoView.getContext().getContentResolver(), item.getImage());
+				imview.setImageBitmap(bm);
+			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+		CheckBox cb = (CheckBox) clockinfoView.findViewById(R.id.item_checkbox);
+		cb.setChecked(item.getIsChecked());
 		
+
 		return clockinfoView;
 	}
 	

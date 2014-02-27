@@ -1,66 +1,70 @@
 package com.gao.myalarmclock;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import android.os.Bundle;
-import android.os.Parcelable;
-import android.os.SystemClock;
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.media.RingtoneManager;
+import android.net.Uri;
+import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
-	private ListView alarmListView;
-	private ArrayList<ClockInfo> list;
-	private ClockInfoAdapter aa;
-	private Button addAlarmButton;
-	private Button deleteAlarmButton;
-	private static final int SHOW_SETTINGACTIVITY = 1;
+	private ListView alarmListView = null;
+	private ArrayList<ClockInfo> list = null;
+	private ClockInfoAdapter aa = null;
+	private Button addAlarmButton = null;
+	private Button deleteAlarmButton = null;
 	private int currentPos = 0;
-	AlarmManager am;
-	MyBroadcastReceiver br;
-	private static final String ACTION_ALARM = "com.gao.action.alarm";
-	
+	private AlarmManager am = null;
+	private String musicUriString = null;
+	private final Context mainactivity = this;
+	private static final int SHOW_SETTINGACTIVITY = 1;
+	public static final String ACTION_ALARM = "com.gao.action.alarm";
+	private static final String PREFS_NAME = "MyPrefsFile";
+	private static final int SELECT_TONE_ACTIVITY = 2;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		Toast.makeText(this, R.string.welcome_msg, Toast.LENGTH_SHORT).show();
 
-		br = new MyBroadcastReceiver();
-        am = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-		
+		// Initialize alarm manager
+		am = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+		// Initialize clock list
 		list = new ArrayList<ClockInfo>();
-		try {
-			loadFromInternalStorage();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		// Load settings from preference file
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		musicUriString = settings.getString("MusicUriString", null);
+		int len = settings.getInt("ListLen", 0);
+		for(int i=0;i<len;i++)
+		{
+			String time_tmp = settings.getString("Time"+i, "");
+			String pin_tmp = settings.getString("Pin"+i, "");
+			String uri_tmp = settings.getString("Uri"+i, "");
+			boolean check_tmp = settings.getBoolean("Check"+i, false);
+			list.add(new ClockInfo(time_tmp,uri_tmp,pin_tmp,check_tmp));
 		}
-				
+
+		currentPos = list.size()-1;
 		alarmListView = (ListView)findViewById(R.id.alarm_list);
 		aa = new ClockInfoAdapter(this,R.layout.clock_itemview,list);
 		alarmListView.setAdapter(aa);
@@ -72,22 +76,82 @@ public class MainActivity extends Activity {
 				// TODO Auto-generated method stub
 				currentPos = position;
 				Intent intent = new Intent(MainActivity.this,ClockSettingActivity.class);
+				intent.putExtra("Pos", position);
+				intent.putExtra("imageUri", list.get(currentPos).getImageUriString());
+				intent.putExtra("Time", list.get(currentPos).getTime());
+				intent.putExtra("PIN", list.get(currentPos).getPin());
 				startActivityForResult(intent,SHOW_SETTINGACTIVITY);
 //				startActivity(intent);
-				
-			}		
+			}
 		});
-		
+
+		alarmListView.setOnItemLongClickListener(new OnItemLongClickListener(){
+
+			@Override
+			public boolean onItemLongClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				currentPos = position;
+				DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						switch (which){
+						case DialogInterface.BUTTON_POSITIVE:
+							if(list.size()>0)
+							{
+								//cancel pending intent:
+								if(list.get(currentPos).getImage() != null)
+								{
+									Intent intenttoFire = new Intent(ACTION_ALARM);
+									String str = list.get(currentPos).getTime();
+									String[] timestr = str.split(" : ");
+									int uniqueCode = Integer.parseInt(timestr[0])*60+Integer.parseInt(timestr[1]);
+									PendingIntent pi = PendingIntent.getBroadcast(mainactivity, uniqueCode, intenttoFire, PendingIntent.FLAG_UPDATE_CURRENT);
+									am.cancel(pi);
+									pi.cancel();
+									new File(list.get(currentPos).getImage().getPath()).delete(); // delete image file
+								}
+								//delete item in list
+								list.remove(currentPos);
+								aa.notifyDataSetChanged();
+								Toast.makeText(mainactivity, "Alarm "+currentPos+" has been deleted!", Toast.LENGTH_LONG).show();
+							}
+							break;
+
+						case DialogInterface.BUTTON_NEGATIVE:
+							//No button clicked
+							break;
+						}
+					}
+				};
+
+				AlertDialog.Builder builder = new AlertDialog.Builder(parent.getContext());
+				builder.setMessage("Delete this alarm?").setPositiveButton("Yes", dialogClickListener)
+				.setNegativeButton("No", dialogClickListener).show();
+				return true;
+			}
+
+		});
+
 		addAlarmButton = (Button)findViewById(R.id.button_add);
 		addAlarmButton.setOnClickListener(new OnClickListener(){
 
 			@Override
-			public void onClick(View arg0) {
+			public void onClick(View context) {
+				if(musicUriString == null)
+				{
+					Toast.makeText(context.getContext(), "Please select a alarm tone first!!(Setting)", Toast.LENGTH_SHORT).show();
+					return;
+				}
 				ClockInfo newclock = new ClockInfo("");
 				list.add(newclock);
 				aa.notifyDataSetChanged();
+				int position = list.size()-1;
+				currentPos = position;
+				Intent intent = new Intent(MainActivity.this,ClockSettingActivity.class);
+				intent.putExtra("Pos", position);
+				startActivityForResult(intent,SHOW_SETTINGACTIVITY);
 			}
-			
+
 		});
 		deleteAlarmButton = (Button)findViewById(R.id.button_delete);
 		deleteAlarmButton.setOnClickListener(new OnClickListener(){
@@ -96,22 +160,28 @@ public class MainActivity extends Activity {
 			public void onClick(View view) {
 				if(list.size()>0)
 				{
-					//cancel pendingintent:
-					Intent intenttoFire = new Intent(ACTION_ALARM);
-					intenttoFire.putExtra("PhotoUri", list.get(currentPos).getImage().toString()); // put original photo in broadcast msg
-					intenttoFire.putExtra("myPIN", list.get(list.size()-1).pin);
-					PendingIntent pi = PendingIntent.getBroadcast(view.getContext(), 0, intenttoFire, 0);
-					am.cancel(pi);
-					pi.cancel();
+					//cancel pending intent:
+					currentPos = list.size()-1;
+					if(list.get(currentPos).getImage() != null)
+					{
+						Intent intenttoFire = new Intent(ACTION_ALARM);
+						String str = list.get(currentPos).getTime();
+						String[] timestr = str.split(" : ");
+						int uniqueCode = Integer.parseInt(timestr[0])*60+Integer.parseInt(timestr[1]);
+						PendingIntent pi = PendingIntent.getBroadcast(mainactivity, uniqueCode, intenttoFire, PendingIntent.FLAG_UPDATE_CURRENT);
+						am.cancel(pi);
+						pi.cancel();
+						new File(list.get(currentPos).getImage().getPath()).delete(); // delete image file
+					}
 					//delete item in list
-					list.remove(list.size()-1);
+					list.remove(currentPos);
 					aa.notifyDataSetChanged();
 					Toast.makeText(view.getContext(), "Last Alarm has been deleted!", Toast.LENGTH_LONG).show();
 				}
 			}
-			
+
 		});
-		
+
 	}
 
 	@Override
@@ -122,7 +192,6 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		// TODO Auto-generated method stub
 		super.onActivityResult(requestCode, resultCode, data);
 		switch (requestCode)
 		{
@@ -132,93 +201,119 @@ public class MainActivity extends Activity {
 				String myPIN = data.getStringExtra("myPIN");
 				int hour = data.getIntExtra("hour", 0);
 				int min = data.getIntExtra("minute", 0);
+				boolean isChecked = data.getBooleanExtra("isChecked",true);
+
 				String str = hour + " : " + min;
+				Uri imageUri;
+				String imageUriString = data.getStringExtra("imageUri");
+				imageUri = Uri.parse(imageUriString);
+
 				list.get(currentPos).setTime(str);
-				list.get(currentPos).setImage(data.getData());
+				list.get(currentPos).setImage(imageUri);
 				list.get(currentPos).setPin(myPIN);
+				list.get(currentPos).setIsChecked(isChecked);
 				aa.notifyDataSetChanged();
-				/* Pending to mend...
-				 */
-				
-				Intent intenttoFire = new Intent(ACTION_ALARM);
-				intenttoFire.putExtra("PhotoUri", list.get(currentPos).getImage().toString()); // put original photo in broadcast msg
-				intenttoFire.putExtra("myPIN", myPIN);
-				PendingIntent pi = PendingIntent.getBroadcast(this, 0, intenttoFire, 0);
-				Calendar c = Calendar.getInstance();
-				int currentH = c.get(Calendar.HOUR);
-				int currentM = c.get(Calendar.MINUTE);
-				if(currentH>hour)
+
+				if(isChecked)
 				{
-					hour += 24;
-				}
-				if(currentH==hour)
-				{
-					if(currentM>=min)
+					Intent intenttoFire = new Intent(ACTION_ALARM);
+					intenttoFire.putExtra("PhotoUri", list.get(currentPos).getImage().toString()); // put original photo in broadcast msg
+					intenttoFire.putExtra("myPIN", myPIN);
+					intenttoFire.putExtra("MusicUri", musicUriString);
+					PendingIntent pi = PendingIntent.getBroadcast(this, hour*60+min, intenttoFire, PendingIntent.FLAG_UPDATE_CURRENT);
+					Calendar c = Calendar.getInstance();
+					int currentH = c.get(Calendar.HOUR_OF_DAY);
+					int currentM = c.get(Calendar.MINUTE);
+					if(currentH>hour)
+					{
 						hour += 24;
+					}
+					if(currentH==hour)
+					{
+						if(currentM>=min)
+							hour += 24;
+					}
+					int hourToGo = (hour-currentH>=0)? hour-currentH : hour-currentH+24;
+					int minToGo = min-currentM;
+					if(minToGo<0)
+					{
+						hourToGo --;
+						minToGo += 60;
+					}
+					int milliToGo = 1000*3600*hourToGo + 1000*60*minToGo;
+					long currentT = System.currentTimeMillis();
+
+					currentT = currentT/60000 * 60000;
+					am.setRepeating(AlarmManager.RTC_WAKEUP,currentT+milliToGo,AlarmManager.INTERVAL_DAY, pi);
+					Toast.makeText(this, "Alarm set in "+hourToGo+" h "+minToGo+" m...", Toast.LENGTH_LONG).show();
 				}
-				int hourToGo = (hour-currentH>=0)? hour-currentH : hour-currentH+24;
-				int minToGo = min-currentM;
-				if(minToGo<0)
+				else
 				{
-					hourToGo --;
-					minToGo += 60;
+					Intent intenttoFire = new Intent(ACTION_ALARM);
+					PendingIntent pi = PendingIntent.getBroadcast(this, hour*60+min, intenttoFire, PendingIntent.FLAG_UPDATE_CURRENT);
+					am.cancel(pi);
+					pi.cancel();
 				}
-				int milliToGo = 1000*3600*hourToGo + 1000*60*minToGo;
-				long currentT = System.currentTimeMillis();
-				
-				currentT = currentT/60000 * 60000;
-				am.setRepeating(AlarmManager.RTC_WAKEUP,currentT+milliToGo,AlarmManager.INTERVAL_DAY, pi);
-				Toast.makeText(this, "Alarm set in "+hourToGo+" h "+minToGo+" m...", Toast.LENGTH_LONG).show();
-				/**/
+			}
+			else
+			{
+				if(currentPos>=0 && list.get(currentPos).getImageUriString()=="")
+				{
+					//delete item in list
+					list.remove(currentPos);
+					aa.notifyDataSetChanged();
+				}
+			}
+			break;
+		case (SELECT_TONE_ACTIVITY):
+			if(resultCode==RESULT_OK)
+			{
+				Uri uri = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
+				if (uri != null)
+				{
+					this.musicUriString = uri.toString();
+				}
+				else
+				{
+					this.musicUriString = null;
+				}
 			}
 			break;
 		}
-	}	
-/*
+	}
+
 	// Save App states
 	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		// TODO Auto-generated method stub
-		outState.putParcelableArrayList("ClockInfoList",list);
-		outState.putParcelableArrayList("PendingIntentList", piList);
-		super.onSaveInstanceState(outState);
-	}
-*/	
-	private void saveToInternalStorage() throws IOException
-	{
-		FileOutputStream fos1 = openFileOutput("clock.info", Context.MODE_PRIVATE);
-		ObjectOutputStream oos1 = new ObjectOutputStream(fos1);
-		oos1.writeInt(list.size());
-		for(ClockInfo i:list)
-			oos1.writeObject(i);
-		oos1.close();
-		fos1.close();
-
-	}
-
-	private void loadFromInternalStorage() throws IOException, ClassNotFoundException
-	{
-		FileInputStream fis1 = openFileInput("clock.info");
-		ObjectInputStream ois1 = new ObjectInputStream(fis1);
-		int num = ois1.readInt();
-		for(int i=0;i<num;i++)
+	protected void onStop() {
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString("MusicUriString", musicUriString);
+		editor.putInt("ListLen", list.size());
+		for(int i=0;i<list.size();i++)
 		{
-			list.add((ClockInfo)ois1.readObject());
+			editor.putString("Time"+i, list.get(i).getTime());
+			editor.putString("Pin"+i, list.get(i).getPin());
+			editor.putString("Uri"+i, list.get(i).getImageUriString());
+			editor.putBoolean("Check"+i, list.get(i).getIsChecked());
 		}
-		ois1.close();
-
-	}
-	
-	@Override
-	protected void onDestroy() {
-		// TODO Auto-generated method stub
-		try {
-			saveToInternalStorage();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		// Commit the edits!
+		editor.commit();
 		super.onStop();
 	}
-	
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		switch (item.getItemId()) {
+        case R.id.setalarmtone:
+        	Intent intent = new Intent(RingtoneManager.ACTION_RINGTONE_PICKER);
+        	intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALL);
+        	intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Select Tone");
+        	intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, (Uri) null);
+        	this.startActivityForResult(intent, SELECT_TONE_ACTIVITY);
+            return true;
+        default:
+            return super.onOptionsItemSelected(item);
+		}
+	}
 }

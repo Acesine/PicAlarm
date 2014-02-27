@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pic Alarm</string>
+    <string name="set_alarm_tone">选择闹铃音</string>
+    <string name="welcome_msg">欢迎使用 Pic Alarm!</string>
+	<string name="add_button_text">添加新的闹钟</string>
+	<string name="delete_button_text">删除最后一个闹钟</string>
+	<string name="OK">确定</string>
+	<string name="Cancel">取消</string>
+	<string name="Password">密码</string>
+	<string name="original_txt">原始图像 </string>
+	<string name="new_txt">新的图像 </string>
+	<string name="originaldescription">原始图像</string>
+	<string name="newdescription">新的图像</string> 
+	<string name="matchscore">匹配得分: </string>
+	<string name="takeapic">拍照</string>
+	<string name="pswd">密码: </string>
+	<string name="check_txt">检测 </string>
+	<string name="pswdhint">在此输入密码</string>
+	<string name="item_img">图像</string>
+	<string name="ON_txt">ON</string>
+	<string name="setpswd">设置密码: </string>
+	<string name="or">或 </string>
+    <string name="holdnshake">摇一摇</string>
+    <string name="title_activity_shake">ShakeActivity</string>
+    <string name="shake">Shake!!!</string>
+    <string name="action_settings">设置</string>
+</resources>

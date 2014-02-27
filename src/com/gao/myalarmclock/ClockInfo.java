@@ -1,24 +1,12 @@
 package com.gao.myalarmclock;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
 
-public class ClockInfo implements Serializable{
-
-	private static final long serialVersionUID = 123456;
-	String time;
-	String bitmapUri=null;
-	String pin;
+public class ClockInfo{
+	private String time = "";
+	private String bitmapUri = "";
+	private String pin = "";
+	private boolean isChecked=false; 
 	
 	public void setPin(String s)
 	{
@@ -42,19 +30,37 @@ public class ClockInfo implements Serializable{
 		bitmapUri = imgUri.toString();
 	}
 	
+	public String getImageUriString()
+	{
+		return bitmapUri;
+	}
+	
 	public Uri getImage()
 	{
-		return Uri.parse(bitmapUri);
+		if(bitmapUri!=null)
+			return Uri.parse(bitmapUri);
+		else
+			return null;
+	}
+	public void setIsChecked(boolean b)
+	{
+		isChecked = b;
+	}
+	
+	public boolean getIsChecked()
+	{
+		return isChecked;
 	}
 	
 	public ClockInfo(String time) {
 		this.time = time;
 	}
 
-	public ClockInfo(String time, String bitmapUri, String pin) {
+	public ClockInfo(String time, String bitmapUri, String pin, boolean isChecked) {
 		this.time = time;
 		this.bitmapUri = bitmapUri;
 		this.pin = pin;
+		this.isChecked = isChecked;
 	}
 
 	public String getString() {
